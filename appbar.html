@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DB생명 AppBar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Square+Neo:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nanum Square Neo', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #e8f4f0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            letter-spacing: 0;
+        }
+
+        .phone {
+            width: 375px;
+            height: 812px;
+            background: #000;
+            border-radius: 40px;
+            padding: 10px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: #f5f7fa;
+            border-radius: 30px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* AppBar Container */
+        .appbar {
+            background: #00b386;
+            color: white;
+            padding: 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            position: relative;
+            z-index: 1000;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            height: 64px;
+        }
+
+        .left-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .menu-button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+        }
+
+        .menu-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .menu-icon span {
+            width: 100%;
+            height: 2px;
+            background: white;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo {
+            width: 32px;
+            height: 32px;
+            background: white;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            color: #00b386;
+            font-size: 14px;
+        }
+
+        .app-title {
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 24px;
+        }
+
+        .right-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-button, .more-button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+        }
+
+        .search-button:hover, .more-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Search Section */
+        .search-section {
+            background: white;
+            margin: 0 16px 12px;
+            border-radius: 28px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+            position: relative;
+            transition: all 0.3s ease;
+            transform: translateY(-8px);
+            display: none;
+        }
+
+        .search-section.visible {
+            display: block;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 20px 12px 48px;
+            border: none;
+            border-radius: 28px;
+            font-size: 16px;
+            font-family: inherit;
+            outline: none;
+            background: transparent;
+            color: #333;
+        }
+
+        .search-input::placeholder {
+            color: #666;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            pointer-events: none;
+        }
+
+        .clear-button {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .search-input:not(:placeholder-shown) + .search-icon + .clear-button {
+            opacity: 1;
+        }
+
+        /* Search Results Dropdown */
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            margin-top: 8px;
+            max-height: 320px;
+            overflow-y: auto;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: all 0.3s ease;
+        }
+
+        .search-results.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .search-category {
+            padding: 16px 20px 8px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #00b386;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .search-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: background-color 0.2s;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .search-item:last-child {
+            border-bottom: none;
+            border-radius: 0 0 16px 16px;
+        }
+
+        .search-item:hover {
+            background: #f8f9fa;
+        }
+
+        .search-item-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+
+        .search-item-text {
+            flex: 1;
+            font-size: 15px;
+            color: #333;
+        }
+
+        .search-item-badge {
+            font-size: 12px;
+            padding: 2px 8px;
+            background: #e8f4f0;
+            color: #00b386;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        /* Demo Content */
+        .demo-content {
+            padding: 20px 16px;
+            background: white;
+            margin: 20px 16px;
+            border-radius: 12px;
+            height: calc(100% - 140px);
+            overflow-y: auto;
+        }
+
+        .demo-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .demo-description {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .feature-list {
+            margin-top: 16px;
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
+            color: #555;
+        }
+
+        .feature-list li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #00b386;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone">
+        <div class="screen">
+            <!-- AppBar -->
+            <div class="appbar">
+                <!-- Top Bar -->
+                <div class="top-bar">
+                    <div class="left-section">
+                        <button class="menu-button" onclick="toggleMenu()">
+                            <div class="menu-icon">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </button>
+
+                        <div class="logo-section">
+                            <div class="logo">DB</div>
+                            <h1 class="app-title">DB생명</h1>
+                        </div>
+                    </div>
+
+                    <div class="right-section">
+                        <button class="search-button" onclick="toggleSearch()">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                            </svg>
+                        </button>
+
+                        <button class="more-button" onclick="showMoreMenu()">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search Section -->
+                <div class="search-section" id="searchSection">
+                    <div class="search-container">
+                        <input
+                            type="text"
+                            class="search-input"
+                            placeholder="메뉴, 고객명, 상품명 검색..."
+                            oninput="handleSearch(this.value)"
+                            onfocus="showSearchResults()"
+                            id="searchInput"
+                        >
+                        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                        </svg>
+                        <button class="clear-button" onclick="clearSearch()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                            </svg>
+                        </button>
+
+                        <!-- Search Results Dropdown -->
+                        <div class="search-results" id="searchResults">
+                            <!-- 동적으로 생성됨 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Demo Content -->
+            <div class="demo-content">
+                <h2 class="demo-title">DB생명 AppBar 데모</h2>
+                <p class="demo-description">
+                    Material 3 디자인을 적용한 DB생명 전용 AppBar입니다.
+                    우측 돋보기 아이콘을 클릭하면 검색 필드가 활성화되고,
+                    타이핑하면 메뉴, 상품, 고객 정보가 자동 완성됩니다.
+                </p>
+
+                <ul class="feature-list">
+                    <li>실시간 검색 자동완성</li>
+                    <li>카테고리별 검색 결과 분류</li>
+                    <li>Material 3 디자인 적용</li>
+                    <li>반응형 모바일 최적화</li>
+                    <li>DB생명 브랜드 컬러 적용</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 검색 데이터
+        const searchData = {
+            메뉴: [
+                { icon: '👥', text: '고객등록', type: '메뉴' },
+                { icon: '📑', text: '심사진행현황', type: '메뉴' },
+                { icon: '📊', text: '가입설계', type: '메뉴' },
+                { icon: '📋', text: '가청약리스트', type: '메뉴' },
+                { icon: '📝', text: '가입설계리스트', type: '메뉴' },
+                { icon: '📁', text: '계약현황', type: '메뉴' },
+                { icon: '🏥', text: '방문진단', type: '메뉴' },
+                { icon: '🏥', text: '의료기관', type: '메뉴' },
+                { icon: '📋', text: '공시', type: '메뉴' },
+                { icon: '📚', text: '질병매뉴얼', type: '메뉴' },
+                { icon: '💼', text: '품스(Pumss)', type: '메뉴' },
+                { icon: '📈', text: '변액자료', type: '메뉴' }
+            ],
+            상품: [
+                { icon: '🛡️', text: '백년친구 700 종신보험', type: '상품' },
+                { icon: '📈', text: '변액유니버셜 종신보험', type: '상품' },
+                { icon: '💰', text: 'DB무배당연금보험', type: '상품' },
+                { icon: '🏥', text: '실손의료보험', type: '상품' },
+                { icon: '🚗', text: '운전자보험', type: '상품' },
+                { icon: '🎯', text: '종합보험', type: '상품' }
+            ],
+            고객: [
+                { icon: '👤', text: '홍길동', type: '고객' },
+                { icon: '👤', text: '최성호', type: '고객' },
+                { icon: '👤', text: '박한근', type: '고객' },
+                { icon: '👤', text: '엄현정', type: '고객' },
+                { icon: '👤', text: '김민수', type: '고객' },
+                { icon: '👤', text: '이영희', type: '고객' }
+            ]
+        };
+
+        let isSearchVisible = false;
+
+        // 검색 토글
+        function toggleSearch() {
+            const searchSection = document.getElementById('searchSection');
+            isSearchVisible = !isSearchVisible;
+
+            if (isSearchVisible) {
+                searchSection.classList.add('visible');
+                document.getElementById('searchInput').focus();
+                showAllResults();
+            } else {
+                searchSection.classList.remove('visible');
+                hideSearchResults();
+            }
+        }
+
+        // 검색 처리
+        function handleSearch(query) {
+            if (!query.trim()) {
+                showAllResults();
+                return;
+            }
+
+            const results = [];
+            const lowerQuery = query.toLowerCase();
+
+            // 모든 카테고리에서 검색
+            Object.entries(searchData).forEach(([category, items]) => {
+                const filteredItems = items.filter(item =>
+                    item.text.toLowerCase().includes(lowerQuery)
+                );
+                if (filteredItems.length > 0) {
+                    results.push({ category, items: filteredItems });
+                }
+            });
+
+            renderSearchResults(results);
+            showSearchResults();
+        }
+
+        // 검색 결과 표시
+        function showSearchResults() {
+            document.getElementById('searchResults').classList.add('visible');
+        }
+
+        // 검색 결과 숨기기
+        function hideSearchResults() {
+            document.getElementById('searchResults').classList.remove('visible');
+        }
+
+        // 모든 결과 표시
+        function showAllResults() {
+            const results = Object.entries(searchData).map(([category, items]) => ({
+                category,
+                items: items.slice(0, 4) // 각 카테고리당 최대 4개
+            }));
+            renderSearchResults(results);
+        }
+
+        // 검색 결과 렌더링
+        function renderSearchResults(results) {
+            const resultsContainer = document.getElementById('searchResults');
+
+            if (results.length === 0) {
+                resultsContainer.innerHTML = '<div class="search-item"><div class="search-item-text">검색 결과가 없습니다.</div></div>';
+                return;
+            }
+
+            let html = '';
+            results.forEach(({ category, items }) => {
+                html += `<div class="search-category">${category}</div>`;
+                items.forEach(item => {
+                    html += `
+                        <div class="search-item" onclick="selectItem('${item.text}')">
+                            <div class="search-item-icon">${item.icon}</div>
+                            <div class="search-item-text">${item.text}</div>
+                            <div class="search-item-badge">${item.type}</div>
+                        </div>
+                    `;
+                });
+            });
+
+            resultsContainer.innerHTML = html;
+        }
+
+        // 항목 선택
+        function selectItem(item) {
+            document.getElementById('searchInput').value = item;
+            hideSearchResults();
+            alert(`"${item}" 선택됨`);
+        }
+
+        // 검색 초기화
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            showAllResults();
+        }
+
+        // 햄버거 메뉴
+        function toggleMenu() {
+            alert('메뉴 열기');
+        }
+
+        // 더보기 메뉴
+        function showMoreMenu() {
+            alert('더보기 메뉴');
+        }
+
+        // 외부 클릭시 검색 결과 숨기기
+        document.addEventListener('click', function(e) {
+            const searchSection = document.getElementById('searchSection');
+            if (isSearchVisible && !searchSection.contains(e.target) && !e.target.closest('.search-button')) {
+                hideSearchResults();
+            }
+        });
+
+        // ESC 키로 검색 닫기
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && isSearchVisible) {
+                toggleSearch();
+            }
+        });
+    </script>
+</body>
+</html>
